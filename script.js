@@ -1,4 +1,5 @@
 window.addEventListener('DOMContentLoaded', function(){
+    
     'use strict';
     
     let tab = document.querySelectorAll('.info-header-tab'),
@@ -12,22 +13,35 @@ window.addEventListener('DOMContentLoaded', function(){
         }
     };
 
-    hideTabContent (1); 
-
+    hideTabContent(1);
+    
     function showTabContent(b) {
         if (tabContent[b].classList.contains('hide')) {
             tabContent[b].classList.remove('hide');
             tabContent[b].classList.add('show');
-        }
-    };
+        };
 
+        let descriptionBtn = document.querySelectorAll('.description-btn');
+        descriptionBtn[b].addEventListener ('click', function () {
+            overlay.style.display = 'block'; 
+            this.classList.add('more-splash');
+            document.body.style.overflow = 'hidden';
+        });
+
+        close.addEventListener ('click', function() {
+            overlay.style.display = 'none'; 
+            descriptionBtn[b].classList.remove('more-splash');
+            document.body.style.overflow = '';
+        });
+    };
+    
     info.addEventListener('click', function(e) {
         let target = e.target;
         if (target && target.classList.contains('info-header-tab')) {
             for (var i = 0; i < tab.length; i++) {
                 if (target == tab[i]) {
                     hideTabContent(0);
-                    showTabContent(i);    
+                    showTabContent(i);   
                 }
             }
         }
@@ -75,16 +89,33 @@ window.addEventListener('DOMContentLoaded', function(){
             hours.textContent = t.hours;
             minutes.textContent = t.minutes;
             seconds.textContent = t.seconds;
-        };
 
-        if (t.total <= 0) {
-            clearInterval (timeInteval);
-        }
+            if (t.total <= 0) {
+                clearInterval (timeInteval);
+            }
+        };
     };
 
     setClock ('timer', deadline);
     
 
+    // Modal window 
+
+    let more = document.querySelector('.more'),
+        overlay = document.querySelector('.overlay'), 
+        close = document.querySelector('.popup-close');
+
+    more.addEventListener ('click', function () {
+        overlay.style.display = 'block'; 
+        this.classList.add('more-splash');
+        document.body.style.overflow = 'hidden';
+    });
+
+    close.addEventListener ('click', function() {
+        overlay.style.display = 'none'; 
+        more.classList.remove('more-splash');
+        document.body.style.overflow = '';
+    });
 });
 
 
