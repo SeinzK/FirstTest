@@ -132,45 +132,119 @@ window.addEventListener('DOMContentLoaded', function(){
 
         statusMessage.classList.add('status');
 
-    function sendForm(elem) {
+    function sendForm (elem) {
         elem.addEventListener ('submit', function(e) {
             e.preventDefault();
-                elem.appendChild(statusMessage);
+            elem.appendChild(statusMessage);
+            let formData = new FormData(elem);
 
-                let request = new XMLHttpRequest();
-                request.open('POST', 'server.php');
-                request.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
-
-                let formData = new FormData(elem);
-
-                request.send(formData);
-
-                request.onreadystatechange = function () {
-                    if (request.readyState < 4) {
-                        statusMessage.innerHTML = message.loading;
-                    } else if (request.readyState === 4) {
-                        if (request.status == 200 && request.status < 300) {
-                            thanksModal.style.display = 'block';
-                            mainModal.style.display = 'none'; 
-                            statusMessage.innerHTML = ''; 
+            function postData(data) {
+                
+                return new Promise(function(resolve, reject){
+                    let request = XMLHTTPRequest();
+                    request.open('POST', 'server.php');
+                    request.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+                    
+                    request.onreadystatechange = function(){
+                        if (request.readyState < 4){
+                            resolve()
+                        } else if (request.readyState === 4){
+                            if (request.status == 200 || request.status < 300){
+                                resolve();
+                            } else {
+                                reject()
                         }
-                        else {
-                            statusMessage.innerHTML = message.false;
-                        }
-                    }
-                }
+                    } 
+                }   
 
-                for (let i = 0; i < input.length; i++) {
-                    input[i].value = ''; 
-                }
-        });      
-    };
+                request.send(data); 
+            })
+            
+        }
+
+        function clearInput() {
+            for (let i = 0; i < input.length; i){
+                input[i].value = ''; 
+            }
+        }
+    
+        postData(formData)
+            .then(() => statusMessage.innerHTML = message.loading)
+            .then(() => {
+                thanksModal.style.display = 'block';
+                mainModal.style.display = 'none';
+                statusMessage.innerHTML = '';
+            })
+            .catch(() => statusMessage.innerHTML = message.false)
+            .then(clearInput);
+    });
 
     sendForm(form);
     sendForm(formBottom);
+    };
 });
 
 
 
+let more = document.querySelector('.more'),
+        overlay = document.querySelector('.overlay'), 
+        close = document.querySelector('.popup-close');
+
+    more.addEventListener ('click', () => {
+        overlay.style.display = 'block'; 
+        this.classList.add('more-splash');
+        document.body.style.overflow = 'hidden';
+    });
+
+    close.addEventListener ('click', () => {
+        overlay.style.display = 'none'; 
+        more.classList.remove('more-splash');
+        document.body.style.overflow = '';
+    });
 
 
+    // Submit Form 
+
+    let message = {
+        loading: 'Загрузка...', 
+        success: 'Мы обязательно Вам перезвоним!', 
+        false: 'Произошла ощибка, повторите пожалуйста.'
+    };
+
+    let form = document.querySelector('.main-form'),
+        input = form.getElementsByTagName('input'),
+        statusMessage = document.createElement('div'); 
+
+        statusMessage.classList.add('status');
+
+    form.addEventListener('submit', function(event) {
+        event.preventDefault();
+        form.appendChild(statusMessage);
+
+        let request = new XMLHttpRequest();
+        request.open('POST', 'server.php');
+        request.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+
+        let formData = new FormData(form);
+
+        let obj = {};
+        formData.forEach(function(value, key){
+            obj[key] = value;
+        });
+        let json = JSON.stringify(obj);
+        request.send('ourForm' + json);
+
+        request.addEventListener ('readystatechange', function() {
+            if (request.readyState < 4){
+                statusMessage.innerHTML = message.loading;
+            } else if (request.readyState === 4 && request.status == 200){
+                statusMessage.innerHTML = message.success;
+            } else {
+                statusMessage.innerHTML = message.false;
+            }
+        });
+
+        for (let i = 0; i < input.length; i++) {
+            input[i].value = ''; 
+        }
+    });
